@@ -8,7 +8,7 @@
 
 
 import time # time delay
-import RPi.GPIO as GPIO # access raspi pins
+import RPi.GPIO as GPIO
 import sys # for command line parameters
 import threading
 import random
@@ -86,6 +86,7 @@ participant_id = sys.argv[1]
 #Das aktuell genutzte Instrument. 1 ist Keyboard, 2 ist Drums, 3 ist Gitarre
 current_instrument = sys.argv[2]
 
+participant_idTest = input("Gib die Participant ID ein: ")
 
 # Bekomme hier den gepressten Fußpedal-Key übergeben
 def handle_foot_input():
