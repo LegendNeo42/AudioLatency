@@ -77,7 +77,9 @@ f_timer = time.time()
 log_data_pair = []
 log_data_base = []
 
+# Warum ist das ein Array?
 latency_results = []
+# average_results brauchen wir nimmer
 average_results = []
 
 # tracks the participant_id in the beginning, mit dem ersten Parameter nach invoken dieses Skripts
@@ -85,8 +87,6 @@ participant_id = sys.argv[1]
 
 #Das aktuell genutzte Instrument. 1 ist Keyboard, 2 ist Drums, 3 ist Gitarre
 current_instrument = sys.argv[2]
-
-participant_idTest = input("Gib die Participant ID ein: ")
 
 # Bekomme hier den gepressten Fußpedal-Key übergeben
 def handle_foot_input():
@@ -100,7 +100,7 @@ def handle_foot_input():
 
     #Prüfe, ob die Eingabe richtig war (KEY_E oder KEY_F)
     answer = checkInput(KEY_E)
-    answer = checkInput(KEY_F)
+    # answer = checkInput(KEY_F)
     #Errechne die Zeit seit dem letzten Versuch
     setRuntime()
     #Füge die Zeit ins Zeiten-Array hinzu
@@ -110,7 +110,7 @@ def handle_foot_input():
     # Logge den ganzen Stuff MIT DER TASTE E
     log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
     # Logge den ganzen Stuff MIT DER TASTE F
-    log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
+    # log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
     # Setze die Werte für E und F zurück
     resetCounter()
     # Setze die Latenzen neu, und lasse die Konsole das Ergebnis ausgeben. 
@@ -176,23 +176,29 @@ def setLatency(answer):
         # Warum wird percent nicht im else zurückgesetzt?
         if(percent >= 8):
             latency = latency - latency_step
-            percent = 0
         else:
             latency = latency + latency_step
+        # Hier ausgeschachtelt, war vorher nur im if
+        percent = 0
     
     # Im Falle der letzten Runde der letzten Runde
     else:
         # Logge alles notwendige
+        # Warum ist das ein Array?
         latency_results.append(latency)
         calcRuntimeTotal()
+        # runtime_total woanders loggen, log_data_base entfernen
         log_data_base.append({"condition" : base_latency, "base_average" : base_average, "runtime_total" : runtime_total})
+        # Ist es nötig, die Werte zu resetten wenn das Programm eh beendet wird?
         runtime_total = 0
         runtime_results = []
+        # average_results brauchen wir nimmer
         average_results.append(base_average)
         saveLog()
-        # Das hier wurde im Original auch noch ausgeführt.
+        # Das hier wurde im Original auch noch ausgeführt. Diese beiden Steps brauchen wir nicht.
         calcFinalResult()
         saveLog()
+    # Anstatt flush vielleicht beenden?    
     sys.stdout.flush()
 
 
@@ -209,7 +215,8 @@ def calcRuntimeTotal():
     global runtime_results
     global runtime_total
     runtime_total = sum(runtime_results)
-   
+
+# Dies brauchen wir nimmer!!!
 def calcFinalResult():
     global average_results
     global final_result
@@ -251,6 +258,7 @@ def setLatencyStep(trial):
 
 # saves csv files
 def saveLog():
+    # Die erste csv brauchen wir nicht
     log_rep = pd.DataFrame(log_data_base)
     log_rep['participant_id'] = participant_id
     log_rep.to_csv(f"{participant_id}_base.csv")
@@ -259,7 +267,7 @@ def saveLog():
     log['participant_id'] = participant_id
     log.to_csv(f"{participant_id}.csv")
 
-# resets latency, trial and latency_step
+# resets latency, trial and latency_step. BRAUCHEN WIR NIMMER!!!
 def resetValues():
     global latency
     global latency_step
@@ -329,6 +337,7 @@ def play_tone (state, latency):
     time.sleep(latency)
     GPIO.output(18, state)
 
+# Brauchen wir ne Startmethode?
 def start():
     resetValues()
     # alles was noch initialisiert werden muss
