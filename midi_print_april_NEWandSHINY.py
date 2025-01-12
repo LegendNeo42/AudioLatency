@@ -79,8 +79,6 @@ log_data_base = []
 
 # Warum ist das ein Array?
 latency_results = []
-# average_results brauchen wir nimmer
-average_results = []
 
 # tracks the participant_id in the beginning, mit dem ersten Parameter nach invoken dieses Skripts
 participant_id = sys.argv[1]
@@ -187,16 +185,10 @@ def setLatency(answer):
         # Warum ist das ein Array?
         latency_results.append(latency)
         calcRuntimeTotal()
-        # runtime_total woanders loggen, log_data_base entfernen
-        log_data_base.append({"condition" : base_latency, "base_average" : base_average, "runtime_total" : runtime_total})
+        # runtime_total woanders loggen
         # Ist es nötig, die Werte zu resetten wenn das Programm eh beendet wird?
         runtime_total = 0
         runtime_results = []
-        # average_results brauchen wir nimmer
-        average_results.append(base_average)
-        saveLog()
-        # Das hier wurde im Original auch noch ausgeführt. Diese beiden Steps brauchen wir nicht.
-        calcFinalResult()
         saveLog()
     # Anstatt flush vielleicht beenden?    
     sys.stdout.flush()
@@ -215,12 +207,6 @@ def calcRuntimeTotal():
     global runtime_results
     global runtime_total
     runtime_total = sum(runtime_results)
-
-# Dies brauchen wir nimmer!!!
-def calcFinalResult():
-    global average_results
-    global final_result
-    final_result = sum(average_results) / len(average_results)
     
 # Setzt die runtime auf die aktuelle Zeit minus sich selbst auf 2 Dezimalen. Runtime wird nach dem erstmaligen Drücken von E oder F mit time.time initialisiert.
 def setRuntime():
@@ -258,24 +244,9 @@ def setLatencyStep(trial):
 
 # saves csv files
 def saveLog():
-    # Die erste csv brauchen wir nicht
-    log_rep = pd.DataFrame(log_data_base)
-    log_rep['participant_id'] = participant_id
-    log_rep.to_csv(f"{participant_id}_base.csv")
-    
     log = pd.DataFrame(log_data_pair)
     log['participant_id'] = participant_id
     log.to_csv(f"{participant_id}.csv")
-
-# resets latency, trial and latency_step. BRAUCHEN WIR NIMMER!!!
-def resetValues():
-    global latency
-    global latency_step
-    global trial
-    
-    latency = 0.256
-    latency_step = 0
-    trial = 1
 
 # checks if the users choice was true or false
 # uses latency and base_latency to find the right answer
@@ -311,7 +282,7 @@ def callback_pin_2 (*args):
     if(random_key == 1):
         threading.Thread(target = play_tone, args = (state, latency,), daemon = True).start()
     else:
-        threading.Thread(target = play_tone, args = (state, base_latency,), daemon = True).start()
+        threading.Thread(target = play_tone, args = (state), daemon = True).start()
 # callback key f
 def callback_pin_3 (*args):
     global pin_3_value
@@ -328,22 +299,15 @@ def callback_pin_3 (*args):
     if(random_key == 0):
         threading.Thread(target = play_tone, args = (state, latency,), daemon = True).start()
     else:
-        threading.Thread(target = play_tone, args = (state, base_latency,), daemon = True).start()
+        threading.Thread(target = play_tone, args = (state), daemon = True).start()
 
 
 #KANN MAN WAHRSCHEINLICH UMSCHREIBEN, so dass nur bei der "correct_side" ein sleep passiert
-# function for playing tone with diffferent latency
+# function for playing tone with different latency
 def play_tone (state, latency):
     time.sleep(latency)
     GPIO.output(18, state)
 
-# Brauchen wir ne Startmethode?
-def start():
-    resetValues()
-    # alles was noch initialisiert werden muss
-
-
-start()
 
 # detect input from GPIO and keyboard note e1 and f1
 GPIO.add_event_detect(2, edge = GPIO.BOTH, callback=callback_pin_2)
