@@ -15,6 +15,7 @@ import random
 import pandas as pd
 import keyboard
 
+
 # select broadcom pin numbers: https://pinout.xyz/#
 GPIO.setmode(GPIO.BCM)
 
@@ -80,11 +81,23 @@ log_data_pair = []
 # Warum ist das ein Array?
 latency_results = []
 
-# tracks the participant_id in the beginning, mit dem ersten Parameter nach invoken dieses Skripts
-participant_id = sys.argv[1]
 
-#Das aktuell genutzte Instrument. 1 ist Keyboard, 2 ist Drums, 3 ist Gitarre
-current_instrument = sys.argv[2]
+# verschiedene Kombinationsmöglichkeiten (latin square)
+combinations = [
+    ["Keyboard", "Gitarre", "Drums"],
+    ["Keyboard", "Drums", "Gitarre"],
+    ["Gitarre", "Keyboard", "Drums"],
+    ["Gitarre", "Drums", "Keyboard"],
+    ["Drums", "Keyboard", "Gitarre"],
+    ["Drums", "Gitarre", "Keyboard"],
+]
+
+# tracks the participant_id in the beginning, mit dem ersten Parameter nach invoken dieses Skripts
+participant_id = int(sys.argv[1])
+
+
+# instrument order abhängig von Participant ID
+instrument_order = combinations[participant_id % 6]
 
 
 def on_e_pressed():
