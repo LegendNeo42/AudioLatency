@@ -1,11 +1,14 @@
 #TO DO:
 # Bei Tastendruck soll geloggt werden
-# Entscheiden, ob man das Skript 3mal startet für die drei Instrumente, oder das intern macht
 # den Code aus dem Pi übernehmen, mit Variationen für das Instrument 1,2 und 3
-# Das Loggen um instrument etc erweitern
-# Beim Loggen alles mit Base Latency rausnehmen
 # current_instrument mitloggen
-
+# Gewichtete Randomness bei e unf f Taste Latenz 50/50
+# runtime_total muss noch geloggt werden
+# count muss noch geloggt werden
+# runtime_average muss noch geloggt werden (und ein Array werden, 1 Wert pro Instrument)
+# runtime_total muss noch geloggt werden (und ein Array werden, 1 Wert pro Instrument)
+# latency_results muss noch geloggt werden
+# Logging anpassen
 
 import time # time delay
 import RPi.GPIO as GPIO
@@ -45,7 +48,7 @@ correct_side = ""
 
 # sum of both counters
 count = 0
-answer = 1
+# answer = 1
 
 # random generator for key assignment
 random_key = random.randint(0, 1)
@@ -54,19 +57,21 @@ random_key = random.randint(0, 1)
 latency = 0.256
 latency_step = 0 # starts with 128 -> 64 -> 32 -> 16 -> 8 -> 4 -> 2 -> 1
 
-# describes the number of trys in one base round
-# needed for latency_step
+# Ein trial beschreibt eine 10er-Runde an reps. Nach jedem Trial wird die Latenz verändert. Insgesamt gibt es pro instrument 8 trials.
 trial = 1
 
-# rep describes the number of repetitions of one base
+# rep beschreibt einen Unterscheidungs-Versuch. 10 reps ergeben einen trial.
 rep = 1
 
-# time of each decision
+# runtime beschreibt die Zeit für einen rep.
 runtime = 0
+# In diesem Array werden die runtimes gespeichert
 runtime_results = []
+# Am Ende wird die durchschnittliche runtime errechnet
 runtime_average = 0
-runtime_total = 0
-final_result = 0
+# Hier werden die Gesamtzeiten pro Instrument gespeichert
+runtime_total = []
+#final_result = 0
 
 # Anzahl der richtigen Eingaben je 10ner-Runde. Sollten nach 10 Eingaben mind. 8 richtig sein (also percent größer gleich 8), dann yippie.
 percent = 0
@@ -98,7 +103,10 @@ participant_id = int(sys.argv[1])
 
 # instrument order abhängig von Participant ID
 instrument_order = combinations[participant_id % 6]
-
+# Beschreibt den ganzen Versuch für ein Instrument, bestehend aus 8 trials. Nach diesen wird das Instrument "erhöht"
+current_instrument_number = 0
+# Das aktuelle Instrument als String fürs Logging
+current_instrument = instrument_order[current_instrument_number]
 
 def on_e_pressed():
     handle_foot_input(KEY_E)
@@ -137,19 +145,6 @@ def handle_foot_input(key):
     # Sollte eine Runde oder der ganze Versuch beendet sein, agiere dementsprechend.
     setLatency(answer)
 
-# KEINE ECHTE METHODE! Soll nur planen/darstellen, was alles bei nem Instrumenten-Press passieren soll.
-def handle_Tastatur_input():
-    global runtime
-    if (KEY_E):
-        if (count == 0):
-            runtime = time.time()
-        counter_e += 1
-    if (KEY_F):
-        if (count == 0):
-            runtime = time.time()
-        counter_f += 1
-
-
 # sets new value for latency depending on answer and latency_step
 # sets a new random key for the latency and calculates the latency_step
 # answer = 1: input is true
@@ -163,6 +158,7 @@ def setLatency(answer):
     global runtime_total
     global percent
     global runtime_results
+    global current_instrument
     
     print(f'trial;{trial}')
     print(f"rep;{rep}")
@@ -211,9 +207,30 @@ def setLatency(answer):
         # Ist es nötig, die Werte zu resetten wenn das Programm eh beendet wird?
         runtime_total = 0
         runtime_results = []
-        saveLog()
+        if(current_instrument_number < 2):
+            current_instrument_number += 1
+            current_instrument = instrument_order[current_instrument_number]
+            reset_values()
+        else:
+            saveLog()
     # Anstatt flush vielleicht beenden?    
     sys.stdout.flush()
+
+def reset_values():
+    global latency
+    global count
+    global trial
+    global rep
+    global percent
+
+    latency = 0.256
+    count = 0
+    trial = 1
+    rep = 1
+    percent = 0
+
+
+
 
 # Die durchschnittliche Dauer pro individuellem Versuch
 def calcRuntimeAverage():
