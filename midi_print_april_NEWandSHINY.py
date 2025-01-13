@@ -13,6 +13,7 @@ import sys # for command line parameters
 import threading
 import random
 import pandas as pd
+import keyboard
 
 # select broadcom pin numbers: https://pinout.xyz/#
 GPIO.setmode(GPIO.BCM)
@@ -75,7 +76,6 @@ f_timer = time.time()
 
 # parameters for saving data
 log_data_pair = []
-log_data_base = []
 
 # Warum ist das ein Array?
 latency_results = []
@@ -86,8 +86,15 @@ participant_id = sys.argv[1]
 #Das aktuell genutzte Instrument. 1 ist Keyboard, 2 ist Drums, 3 ist Gitarre
 current_instrument = sys.argv[2]
 
+
+def on_e_pressed():
+    handle_foot_input(KEY_E)
+
+def on_f_pressed():
+    handle_foot_input(KEY_F)
+
 # Bekomme hier den gepressten Fußpedal-Key übergeben
-def handle_foot_input():
+def handle_foot_input(key):
     global counter_e
     global counter_f
     global count
@@ -97,18 +104,20 @@ def handle_foot_input():
     global rep
 
     #Prüfe, ob die Eingabe richtig war (KEY_E oder KEY_F)
-    answer = checkInput(KEY_E)
-    # answer = checkInput(KEY_F)
+    answer = checkInput(key)
     #Errechne die Zeit seit dem letzten Versuch
     setRuntime()
     #Füge die Zeit ins Zeiten-Array hinzu
     runtime_results.append(runtime)
     # Setze die globalen Variablen für die Latenz von E und F, und der correctSide.
     getLatencies()
-    # Logge den ganzen Stuff MIT DER TASTE E
-    log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
-    # Logge den ganzen Stuff MIT DER TASTE F
-    # log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
+
+    if (key == KEY_E):
+        # Logge den ganzen Stuff MIT DER TASTE E
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
+    else:
+        # Logge den ganzen Stuff MIT DER TASTE F
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
     # Setze die Werte für E und F zurück
     resetCounter()
     # Setze die Latenzen neu, und lasse die Konsole das Ergebnis ausgeben. 
@@ -192,9 +201,6 @@ def setLatency(answer):
         saveLog()
     # Anstatt flush vielleicht beenden?    
     sys.stdout.flush()
-
-
-
 
 # Die durchschnittliche Dauer pro individuellem Versuch
 def calcRuntimeAverage():
@@ -282,7 +288,7 @@ def callback_pin_2 (*args):
     if(random_key == 1):
         threading.Thread(target = play_tone, args = (state, latency,), daemon = True).start()
     else:
-        threading.Thread(target = play_tone, args = (state), daemon = True).start()
+        threading.Thread(target = play_tone, args = (state, 0), daemon = True).start()
 # callback key f
 def callback_pin_3 (*args):
     global pin_3_value
@@ -299,7 +305,7 @@ def callback_pin_3 (*args):
     if(random_key == 0):
         threading.Thread(target = play_tone, args = (state, latency,), daemon = True).start()
     else:
-        threading.Thread(target = play_tone, args = (state), daemon = True).start()
+        threading.Thread(target = play_tone, args = (state, 0), daemon = True).start()
 
 
 #KANN MAN WAHRSCHEINLICH UMSCHREIBEN, so dass nur bei der "correct_side" ein sleep passiert
@@ -312,6 +318,9 @@ def play_tone (state, latency):
 # detect input from GPIO and keyboard note e1 and f1
 GPIO.add_event_detect(2, edge = GPIO.BOTH, callback=callback_pin_2)
 GPIO.add_event_detect(3, edge = GPIO.BOTH, callback=callback_pin_3)
+
+keyboard.on_press_key("e", lambda _: on_e_pressed())
+keyboard.on_press_key("f", lambda _: on_f_pressed())
 
 while True:
     continue
