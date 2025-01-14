@@ -177,7 +177,7 @@ def setLatency(answer):
     
         
         # Warum wird percent nicht im else zurückgesetzt?
-        if(percent >= 5):
+        if(percent >= 8):
             last_correct_answer = latency
             print(latency)
             print("minus")
