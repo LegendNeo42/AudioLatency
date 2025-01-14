@@ -110,6 +110,7 @@ def handle_foot_input(key):
     global runtime_results
     global rep
     global last_correct_answer
+    global log_data_pair
 
     #Prüfe, ob die Eingabe richtig war (KEY_E oder KEY_F)
     answer = checkInput(key)
@@ -176,11 +177,25 @@ def setLatency(answer):
     
         
         # Warum wird percent nicht im else zurückgesetzt?
-        if(percent >= 8):
-            latency = latency - latency_step[trial]
+        if(percent >= 5):
             last_correct_answer = latency
+            print(latency)
+            print("minus")
+            print(latency_step[trial])
+            print("gleich")
+            latency = latency - latency_step[trial]
+            print(latency)
+            latency = round(latency, 3)
+            print(latency)
         else:
+            print(latency)
+            print("plus")
+            print(latency_step[trial])
+            print("gleich")
             latency = latency + latency_step[trial]
+            print(latency)
+            latency = round(latency, 3)
+            print(latency)
         # Hier ausgeschachtelt, war vorher nur im if
         percent = 0
         # Sollte eine 10ner-Runde beendet sein, update die nötigen Counter und wende die 8/10-PEST plus oder minus an.
@@ -214,12 +229,14 @@ def reset_values():
     global trial
     global rep
     global percent
+    global last_correct_answer
 
     latency = 0.256
     count = 0
     trial = 0
     rep = 0
     percent = 0
+    last_correct_answer = 0.256
 
 
 
@@ -268,6 +285,8 @@ def setRandomKey():
 
 # saves csv files
 def saveLog():
+    global log_data_pair
+
     log = pd.DataFrame(log_data_pair)
     log['participant_id'] = participant_id
     log.to_csv(f"{participant_id}.csv")
