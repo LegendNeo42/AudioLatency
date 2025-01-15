@@ -27,7 +27,7 @@ counter_f = 0
 latency_e = 0
 latency_f = 0
 correct_side = ""
-last_correct_answer = 0.256
+last_correct_answer = 0
 
 # sum of both counters
 count = 0
@@ -123,10 +123,10 @@ def handle_foot_input(key):
 
     if (key == KEY_E):
         # Logge den ganzen Stuff MIT DER TASTE E
-        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "last_correct_answer" : last_correct_answer})
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "current_personal_best_latency" : last_correct_answer})
     else:
         # Logge den ganzen Stuff MIT DER TASTE F
-        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "last_correct_answer" : last_correct_answer})
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "current_personal_best_latency" : last_correct_answer})
     # Setze die Werte für E und F zurück
     resetCounter()
     # Setze die Latenzen neu, und lasse die Konsole das Ergebnis ausgeben. 
@@ -201,6 +201,7 @@ def setLatency(answer):
         # Sollte eine 10ner-Runde beendet sein, update die nötigen Counter und wende die 8/10-PEST plus oder minus an.
         trial +=1
         rep = 0
+        
     
     # Im Falle der letzten Runde der letzten Runde
     else:
@@ -236,7 +237,7 @@ def reset_values():
     trial = 0
     rep = 0
     percent = 0
-    last_correct_answer = 0.256
+    last_correct_answer = 0
 
 
 

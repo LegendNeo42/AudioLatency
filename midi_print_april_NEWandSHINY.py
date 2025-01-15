@@ -19,6 +19,8 @@ import random
 import pandas as pd
 import keyboard
 
+# diese Variable wird auf True gesetzt, sobald alle Versuche durchgelaufen sind, damit das Programm beendet wird
+stop_loop = False
 
 # select broadcom pin numbers: https://pinout.xyz/#
 GPIO.setmode(GPIO.BCM)
@@ -45,24 +47,27 @@ counter_f = 0
 
 latency_e = 0
 latency_f = 0
+# Korrekt ist die Seite mit Latenz
 correct_side = ""
+last_correct_answer = 0
 
 # sum of both counters
 count = 0
 # answer = 1
 
 # random generator for key assignment
-random_key = random.randint(0, 1)
+latency_keys = ["E"] * 40 + ["F"] * 40
+random.shuffle(latency_keys)
 
 # parameters for latency
-latency = 0.256
-latency_step = 0 # starts with 128 -> 64 -> 32 -> 16 -> 8 -> 4 -> 2 -> 1
+latency = 0.128
+latency_step = [0.064, 0.032, 0.016, 0.008, 0.004, 0.002, 0.001]
 
 # Ein trial beschreibt eine 10er-Runde an reps. Nach jedem Trial wird die Latenz verändert. Insgesamt gibt es pro instrument 8 trials.
-trial = 1
+trial = 0
 
 # rep beschreibt einen Unterscheidungs-Versuch. 10 reps ergeben einen trial.
-rep = 1
+rep = 0
 
 # runtime beschreibt die Zeit für einen rep.
 runtime = 0
@@ -110,9 +115,11 @@ current_instrument_number = 0
 current_instrument = instrument_order[current_instrument_number]
 
 def on_e_pressed():
+    print("Key pressed:     E")
     handle_foot_input(KEY_E)
 
 def on_f_pressed():
+    print("Key pressed:     F")
     handle_foot_input(KEY_F)
 
 # Bekomme hier den gepressten Fußpedal-Key übergeben
@@ -124,6 +131,8 @@ def handle_foot_input(key):
     global runtime
     global runtime_results
     global rep
+    global last_correct_answer
+    global log_data_pair
 
     #Prüfe, ob die Eingabe richtig war (KEY_E oder KEY_F)
     answer = checkInput(key)
@@ -136,11 +145,11 @@ def handle_foot_input(key):
 
     if (key == KEY_E):
         # Logge den ganzen Stuff MIT DER TASTE E
-        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "e", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "current_personal_best_latency" : last_correct_answer})
     else:
         # Logge den ganzen Stuff MIT DER TASTE F
-        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime})
-    # Setze die Werte für E und F zurück
+        log_data_pair.append({"instrument" : current_instrument, "repetition" : rep, "trial" : trial, "counter_e" : counter_e, "counter_f" : counter_f, "latency_e" : latency_e, "latency_f" : latency_f, "key" : "f", "correct_side" : correct_side, "answer" : answer, "time" : runtime, "current_personal_best_latency" : last_correct_answer})
+   # Setze die Werte für E und F zurück
     resetCounter()
     # Setze die Latenzen neu, und lasse die Konsole das Ergebnis ausgeben. 
     # Sollte eine Runde oder der ganze Versuch beendet sein, agiere dementsprechend.
@@ -151,6 +160,7 @@ def handle_foot_input(key):
 # answer = 1: input is true
 # answer = 0: input is false
 def setLatency(answer):
+    global stop_loop
     global trial
     global latency_step
     global latency
@@ -160,16 +170,18 @@ def setLatency(answer):
     global percent
     global runtime_results
     global current_instrument
+    global current_instrument_number
+    global last_correct_answer
     
-    print(f'trial;{trial}')
-    print(f"rep;{rep}")
+    print("Das ist "f'trial:   {trial}')
+    print("Das ist "f"rep:     {rep}")
 
     rep += 1
     # randomized zwischen E und F
     setRandomKey()
     
     # Solange noch nicht der 10. Versuch war...
-    if(rep <= 10):
+    if(rep < 10):
         if answer == 1:
             percent +=1
             print("richtig")
@@ -185,18 +197,30 @@ def setLatency(answer):
         elif answer == 0:
             print("falsch")
         
+        if(percent >= 8):
+            last_correct_answer = latency
+            print(latency)
+            print("minus")
+            print(latency_step[trial])
+            print("gleich")
+            latency = latency - latency_step[trial]
+            print(latency)
+            latency = round(latency, 3)
+            print(latency)
+        else:
+            print(latency)
+            print("plus")
+            print(latency_step[trial])
+            print("gleich")
+            latency = latency + latency_step[trial]
+            print(latency)
+            latency = round(latency, 3)
+            print(latency)
+
+        percent = 0
         # Sollte eine 10ner-Runde beendet sein, update die nötigen Counter und wende die 8/10-PEST plus oder minus an.
         trial +=1
-        rep = 1
-        setLatencyStep(trial)
-        
-        # Warum wird percent nicht im else zurückgesetzt?
-        if(percent >= 8):
-            latency = latency - latency_step
-        else:
-            latency = latency + latency_step
-        # Hier ausgeschachtelt, war vorher nur im if
-        percent = 0
+        rep = 0
     
     # Im Falle der letzten Runde der letzten Runde
     else:
@@ -210,12 +234,13 @@ def setLatency(answer):
         runtime_results = []
         if(current_instrument_number < 2):
             current_instrument_number += 1
+            print("CURRENT_INSTRUMENT_NUMBER: " + str(current_instrument_number))
             current_instrument = instrument_order[current_instrument_number]
             reset_values()
         else:
             saveLog()
-    # Anstatt flush vielleicht beenden?    
-    sys.stdout.flush()
+            stop_loop = True
+            
 
 def reset_values():
     global latency
@@ -223,12 +248,16 @@ def reset_values():
     global trial
     global rep
     global percent
+    global last_correct_answer
+    global latency_keys
 
     latency = 0.256
     count = 0
-    trial = 1
-    rep = 1
+    trial = 0
+    rep = 0
     percent = 0
+    last_correct_answer = 0
+    random.shuffle(latency_keys)
 
 
 
@@ -253,12 +282,14 @@ def setRuntime():
 
 # gets e and f latency for dataframe, Setze die Latenzen für die Tasten E und F
 def getLatencies():
-    global random_key
+    global latency_keys
     global latency_e
     global latency_f
     global correct_side
+    global trial
+    global rep
     
-    if(random_key == 1):
+    if(latency_keys[10*trial + rep] == "E"):
         latency_e = latency
         latency_f = 0
         correct_side = "e";
@@ -274,13 +305,10 @@ def setRandomKey():
     global random_key
     random_key = random.randint(0, 1)
 
-# calculates and sets latency_step depending on trial
-def setLatencyStep(trial):
-    global latency_step
-    latency_step = 0.256 / (2**trial)
-
 # saves csv files
 def saveLog():
+    global log_data_pair
+
     log = pd.DataFrame(log_data_pair)
     log['participant_id'] = participant_id
     log.to_csv(f"{participant_id}.csv")
@@ -354,4 +382,6 @@ keyboard.on_press_key("e", lambda _: on_e_pressed())
 keyboard.on_press_key("f", lambda _: on_f_pressed())
 
 while True:
-    continue
+    if stop_loop:
+        sys.stdout.flush()
+        break
