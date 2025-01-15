@@ -1,15 +1,10 @@
 #TO DO:
-# Bei Tastendruck soll geloggt werden
 # den Code aus dem Pi übernehmen, mit Variationen für das Instrument 1,2 und 3
-# current_instrument mitloggen
-# Gewichtete Randomness bei e unf f Taste Latenz 50/50
-# runtime_total muss noch geloggt werden
-# count muss noch geloggt werden
-# runtime_average muss noch geloggt werden (und ein Array werden, 1 Wert pro Instrument)
-# runtime_total muss noch geloggt werden (und ein Array werden, 1 Wert pro Instrument)
-# latency_results muss noch geloggt werden
-# Logging anpassen
+# Logging anpassen im Bezug auf runtime (rohe Time loggen)
 # Cooldown auf Press falls person zu lange auf Fußpedal ist (gerade ca 1 Sekunde)
+# Bei Gitarre Code NOT ändern mit If abfrage
+# Code aufräumen (Kommentare ändern, Prints verändern)
+# GUI Bauen
 
 import time # time delay
 import RPi.GPIO as GPIO
@@ -34,8 +29,8 @@ GPIO.setup(2, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(3, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
 # initialize parameters
-pin_2_value = 1
-pin_3_value = 1
+#pin_2_value = 1
+#pin_3_value = 1
 
 # constant parameter for decision
 KEY_E = 1
@@ -333,12 +328,12 @@ def resetCounter():
 # DAS HIER SIND DIE CALLBACK METHODEN! HIER MUSS NOCH SHIT REIN! UND RAUS!
 # callback key e
 def callback_pin_2 (*args):
-    global pin_2_value
+    #global pin_2_value
     global latency
     global e_timer
     
     state = not GPIO.input(2)
-    pin_2_value = state
+    #pin_2_value = state
     
     if (state == True and (time.time() - e_timer < 0.02)):
         return
@@ -350,12 +345,12 @@ def callback_pin_2 (*args):
         threading.Thread(target = play_tone, args = (state, 0), daemon = True).start()
 # callback key f
 def callback_pin_3 (*args):
-    global pin_3_value
+    #global pin_3_value
     global latency
     global f_timer
     
     state = not GPIO.input(3)
-    pin_3_value = state
+    #pin_3_value = state
     
     if (state == True and (time.time() - f_timer < 0.02)):
         return
